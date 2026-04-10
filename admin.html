@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scorecard Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f0f4f8;--surface:#fff;--surface2:#f4f7fa;
+  --border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.13);
+  --accent:#185FA5;--accent-light:#E6F1FB;
+  --text:#1a202c;--text2:#4a5568;--text3:#a0aec0;
+  --green:#276749;--green-bg:#EAF3DE;--green-border:#68d391;
+  --amber:#854F0B;--amber-bg:#FAEEDA;--amber-border:#f6ad55;
+  --red:#9b2c2c;--red-bg:#FCEBEB;--red-border:#fc8181;
+  --blue-bg:#E6F1FB;--blue-border:#90cdf4;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.header{background:var(--surface);border-bottom:0.5px solid var(--border2);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.logo{font-size:18px;font-weight:600}.logo span{color:var(--accent)}
+.logo-sub{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
+.btn{border:0.5px solid var(--border2);border-radius:6px;padding:7px 16px;font-size:13px;background:var(--surface);color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:all 0.15s}
+.btn:hover{background:var(--surface2)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.primary:hover{opacity:0.88}
+.btn.danger{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}.btn.danger:hover{opacity:0.85}
+.btn.success{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.btn.sm{padding:4px 10px;font-size:11px}
+
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:80vh;padding:2rem}
+.login-card{background:var(--surface);border:0.5px solid var(--border2);border-radius:12px;padding:2rem;width:100%;max-width:380px}
+.login-title{font-size:18px;font-weight:600;margin-bottom:6px}
+.login-sub{font-size:13px;color:var(--text3);margin-bottom:1.5rem}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:5px}
+.field input{width:100%;border:0.5px solid var(--border2);border-radius:6px;padding:8px 12px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--surface)}
+.field input:focus{outline:none;border-color:var(--accent)}
+.login-err{background:var(--red-bg);border:0.5px solid var(--red-border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--red);margin-bottom:1rem;display:none}
+
+/* MAIN */
+#main-screen{display:none}
+.main{padding:1.5rem 2rem;max-width:1100px;margin:0 auto}
+.section{background:var(--surface);border:0.5px solid var(--border2);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px}
+.section-title{font-size:14px;font-weight:600;color:var(--text)}
+.section-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:1.25rem}
+.kpi{background:var(--surface2);border-radius:8px;padding:1rem}
+.kpi-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px}
+.kpi-val{font-size:22px;font-weight:600;color:var(--text)}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* TABLE */
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{font-size:10px;color:var(--text3);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;padding:7px 10px;text-align:left;border-bottom:0.5px solid var(--border2)}
+.tbl td{color:var(--text2);padding:9px 10px;border-bottom:0.5px solid var(--border)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--surface2)}
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:500}
+.badge.green{background:var(--green-bg);border:0.5px solid var(--green-border);color:var(--green)}
+.badge.amber{background:var(--amber-bg);border:0.5px solid var(--amber-border);color:var(--amber)}
+.badge.red{background:var(--red-bg);border:0.5px solid var(--red-border);color:var(--red)}
+.badge.blue{background:var(--blue-bg);border:0.5px solid var(--blue-border);color:var(--accent)}
+.badge.gray{background:var(--surface2);border:0.5px solid var(--border2);color:var(--text3)}
+
+/* FORM INPUTS */
+.input-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem;align-items:flex-end}
+.input-row .field{flex:1;min-width:140px;margin-bottom:0}
+select{width:100%;border:0.5px solid var(--border2);border-radius:6px;padding:8px 12px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--surface)}
+select:focus{outline:none;border-color:var(--accent)}
+
+/* STATUS SELECT */
+.status-sel{border:0.5px solid var(--border2);border-radius:5px;padding:3px 6px;font-size:11px;font-family:'DM Sans',sans-serif;color:var(--text2);background:var(--surface);cursor:pointer}
+
+/* EMAIL PREVIEW */
+.email-preview{background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;padding:1rem;font-size:12px;color:var(--text2);line-height:1.8;font-family:'DM Mono',monospace;white-space:pre-wrap;max-height:300px;overflow-y:auto}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999}
+.toast.show{opacity:1}
+
+/* TABS */
+.tab-nav{display:flex;gap:2px;border-bottom:0.5px solid var(--border2);margin-bottom:1.5rem}
+.tab-btn{padding:9px 16px;font-size:13px;font-weight:500;color:var(--text3);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;font-family:'DM Sans',sans-serif}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.panel{display:none}.panel.active{display:block}
+
+@media(max-width:600px){
+  .main,.header{padding-left:1rem;padding-right:1rem}
+  .grid-2{grid-template-columns:1fr}
+  .input-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">Scorecard <span>Admin</span></div>
+    <div class="logo-sub">nVent Manufacturing &bull; 2nd Shift</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <a href="index.html"><button class="btn">&#8592; View dashboard</button></a>
+    <button class="btn danger" id="logout-btn" onclick="logout()" style="display:none">Log out</button>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-title">Admin login</div>
+    <div class="login-sub">Enter your credentials to access admin controls</div>
+    <div class="login-err" id="login-err">Incorrect username or password</div>
+    <div class="field"><label>Username</label><input type="text" id="usr" placeholder="admin" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="field"><label>Password</label><input type="password" id="pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn primary" style="width:100%" onclick="doLogin()">Sign in</button>
+  </div>
+</div>
+
+<!-- MAIN ADMIN -->
+<div id="main-screen">
+<div class="main">
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="swTab('overview',this)">Overview</button>
+  <button class="tab-btn" onclick="swTab('emails',this)">Email recipients</button>
+  <button class="tab-btn" onclick="swTab('bottlenecks',this)">Bottlenecks</button>
+  <button class="tab-btn" onclick="swTab('users',this)">Admin users</button>
+  <button class="tab-btn" onclick="swTab('settings',this)">Settings</button>
+</div>
+
+<!-- OVERVIEW TAB -->
+<div id="overview" class="panel active">
+  <div class="grid-2">
+    <div class="kpi"><div class="kpi-label">Total submissions</div><div class="kpi-val" id="ov-total">—</div><div class="kpi-sub">all time</div></div>
+    <div class="kpi"><div class="kpi-label">Email recipients</div><div class="kpi-val" id="ov-emails">—</div><div class="kpi-sub">on the distribution list</div></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Send summary report now</div><div class="section-sub">Sends to all active email recipients immediately</div></div>
+      <button class="btn primary" onclick="sendNow()">&#9993; Send now</button>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">Preview of what will be sent:</div>
+    <div class="email-preview" id="email-preview">Loading preview...</div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Weekly auto-send</div><div class="section-sub">Every Friday at 10:30 PM — set up via Google Apps Script</div></div>
+      <span class="badge green">Active</span>
+    </div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.7">Your Google Sheet sends a weekly summary every Friday automatically. To change the schedule, go to your Google Sheet → Extensions → Apps Script → Triggers.</div>
+  </div>
+</div>
+
+<!-- EMAIL RECIPIENTS TAB -->
+<div id="emails" class="panel">
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Add recipient</div></div>
+    </div>
+    <div class="input-row">
+      <div class="field"><label>Full name</label><input type="text" id="new-name" placeholder="Christopher Rodriguez"></div>
+      <div class="field"><label>Email address</label><input type="email" id="new-email" placeholder="chris@nventco.com"></div>
+      <div class="field"><label>Title / Role</label><input type="text" id="new-title" placeholder="Shop Floor Lead"></div>
+      <div class="field"><label>Access level</label>
+        <select id="new-role">
+          <option value="viewer">Viewer — dashboard only</option>
+          <option value="manager">Manager — receives reports</option>
+          <option value="admin">Admin — full access</option>
+        </select>
+      </div>
+      <button class="btn primary" style="white-space:nowrap;align-self:flex-end" onclick="addRecipient()">Add</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Distribution list</div><div class="section-sub">These people receive the weekly summary email</div></div>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>Name</th><th>Email</th><th>Title</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="recipients-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- BOTTLENECKS TAB -->
+<div id="bottlenecks" class="panel">
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Bottleneck tracker</div><div class="section-sub">Update status as issues are resolved or escalated</div></div>
+      <div style="display:flex;gap:6px">
+        <span class="badge green">Resolved</span>
+        <span class="badge amber">Still ongoing</span>
+        <span class="badge red">Escalated</span>
+      </div>
+    </div>
+    <table class="tbl">
+      <thead><tr><th>Date</th><th>Lead</th><th>Score</th><th>Bottleneck description</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody id="bn-table"></tbody>
+    </table>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Recurring issues</div><div class="section-sub">Bottlenecks marked "Still ongoing" for 3+ days</div></div>
+    </div>
+    <div id="recurring-list" style="font-size:13px;color:var(--text3)">Loading...</div>
+  </div>
+</div>
+
+<!-- ADMIN USERS TAB -->
+<div id="users" class="panel">
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Add admin user</div></div>
+    </div>
+    <div class="input-row">
+      <div class="field"><label>Username</label><input type="text" id="new-usr" placeholder="jsmith"></div>
+      <div class="field"><label>Password</label><input type="password" id="new-upwd" placeholder="••••••••"></div>
+      <div class="field"><label>Display name</label><input type="text" id="new-uname" placeholder="John Smith"></div>
+      <button class="btn primary" style="align-self:flex-end" onclick="addUser()">Add user</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-header"><div class="section-title">Admin users</div></div>
+    <table class="tbl">
+      <thead><tr><th>Username</th><th>Display name</th><th>Last login</th><th>Actions</th></tr></thead>
+      <tbody id="users-table"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SETTINGS TAB -->
+<div id="settings" class="panel">
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Google Sheets connection</div><div class="section-sub">The CSV link your dashboard reads from</div></div></div>
+    <div class="field"><label>CSV URL</label><input type="text" id="csv-url" style="font-family:var(--font-mono);font-size:11px"></div>
+    <button class="btn primary" onclick="saveSetting('csvUrl',$('csv-url').value);toast('CSV URL saved')">Save</button>
+  </div>
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Google Apps Script setup</div><div class="section-sub">Copy this script into your Google Sheet to enable automated emails</div></div></div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.7">
+      1. Open your Google Sheet<br>
+      2. Click <strong>Extensions → Apps Script</strong><br>
+      3. Delete all existing code and paste the script below<br>
+      4. Click <strong>Save</strong>, then <strong>Run → sendWeeklySummary</strong> once to authorize<br>
+      5. Click <strong>Triggers (clock icon) → Add trigger</strong> → function: sendWeeklySummary → weekly → Friday → 10PM-11PM
+    </div>
+    <div class="email-preview" id="apps-script-code">Loading script...</div>
+    <button class="btn" style="margin-top:8px" onclick="copyScript()">Copy script</button>
+  </div>
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Change admin password</div></div></div>
+    <div class="input-row">
+      <div class="field"><label>Current password</label><input type="password" id="cur-pwd"></div>
+      <div class="field"><label>New password</label><input type="password" id="new-pwd"></div>
+      <div class="field"><label>Confirm new password</label><input type="password" id="conf-pwd"></div>
+      <button class="btn primary" style="align-self:flex-end" onclick="changePwd()">Update</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- end main -->
+</div><!-- end main-screen -->
+
+<div class="toast" id="toast"></div>
+
+<script>
+const APPS_SCRIPT_URL="https://script.google.com/macros/s/AKfycbwlzc-GoY0wKztEmawM3A1AkgfweSED9W30o4mh66iKH3YPesoE83vFHG1ulrjhAS-f2Q/exec";
+const RECIPIENTS_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vQkfhxjQ3Fb4qJHnrtiI4bElGND-BEz-QFEYGbGlR5PzxMPHwWdTeANy8kepnQl_iRbolWiU_Kv8-Kt/pub?gid=1036397965&single=true&output=csv";
+const ADMINS_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vQkfhxjQ3Fb4qJHnrtiI4bElGND-BEz-QFEYGbGlR5PzxMPHwWdTeANy8kepnQl_iRbolWiU_Kv8-Kt/pub?gid=980663171&single=true&output=csv";
+const SHEET_CSV='https://docs.google.com/spreadsheets/d/e/2PACX-1vQkfhxjQ3Fb4qJHnrtiI4bElGND-BEz-QFEYGbGlR5PzxMPHwWdTeANy8kepnQl_iRbolWiU_Kv8-Kt/pub?gid=1731143978&single=true&output=csv';
+
+// ── STORAGE HELPERS ───────────────────────────────────────────
+const store = {
+  get: k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
+  set: (k,v) => localStorage.setItem(k, JSON.stringify(v)),
+};
+
+// ── DEFAULT DATA ──────────────────────────────────────────────
+function initDefaults(){
+  // Only initialize recipients and statuses — NOT admins
+  // Admins come from Google Sheet, not hardcoded defaults
+  if(!store.get('recipients')) store.set('recipients',[]);
+  if(!store.get('bnStatuses')) store.set('bnStatuses',{});
+  if(!store.get('bnNotes')) store.set('bnNotes',{});
+  if(!store.get('csvUrl')) store.set('csvUrl',SHEET_CSV);
+
+  // Clean up any stale test/hello users from localStorage
+  let admins = store.get('admins')||[];
+  // Keep only users that exist in the sheet — we'll sync on login
+  // For now just ensure admin from sheet row is present if we know the password
+  store.set('admins', admins.filter(a=>a.username&&a.password&&a.name));
+}
+
+// Auto-logout after 1 hour of inactivity
+function startSessionTimer(){
+  setInterval(()=>{
+    const session=store.get('session');
+    if(session&&(Date.now()-session.time)>=3600000){
+      toast('Session expired — logging out');
+      setTimeout(logout,2000);
+    }
+  },60000); // check every minute
+}
+
+// Reset session timer on any click
+document.addEventListener('click',()=>{
+  const session=store.get('session');
+  if(session) store.set('session',{...session,time:Date.now()});
+});
+
+// ── AUTH ──────────────────────────────────────────────────────
+async function doLogin(){
+  const usr=$('usr').value.trim();
+  const pwd=$('pwd').value;
+  if(!usr||!pwd){$('login-err').style.display='block';$('login-err').textContent='Please enter username and password';return;}
+  const btn=document.querySelector('[onclick="doLogin()"]');
+  btn.textContent='Signing in...';btn.disabled=true;
+  $('login-err').style.display='none';
+
+  // Check localStorage first (works offline and on same device)
+  const localAdmins=store.get('admins')||[];
+  const localMatch=localAdmins.find(a=>a.username===usr&&a.password===pwd&&a.active!==false);
+  if(localMatch){
+    store.set('session',{username:usr,name:localMatch.name,time:Date.now()});
+    btn.textContent='Sign in';btn.disabled=false;
+    showMain();
+    return;
+  }
+
+  // Fall back to Google Sheet CSV for cross-device login
+  try{
+    const resp=await fetch(ADMINS_CSV+'&t='+Date.now());
+    const text=await resp.text();
+    const lines=text.trim().split('\n').slice(1);
+    let matched=null;
+    for(const line of lines){
+      if(!line.trim())continue;
+      const parts=line.split(',').map(v=>v.replace(/^"|"$/g,'').trim());
+      const [sheetUsr,sheetPwd,sheetName,sheetActive]=parts;
+      if(sheetUsr===usr&&sheetPwd===pwd&&(sheetActive==='TRUE'||sheetActive==='True'||sheetActive==='true'||sheetActive==='Yes')){
+        matched={username:sheetUsr,name:sheetName};
+        break;
+      }
+    }
+    if(matched){
+      // Save to localStorage so future logins work offline
+      const list=store.get('admins')||[];
+      if(!list.find(a=>a.username===matched.username)){
+        list.push({username:matched.username,password:pwd,name:matched.name,active:true});
+        store.set('admins',list);
+      }
+      store.set('session',{username:matched.username,name:matched.name,time:Date.now()});
+      showMain();
+    } else {
+      $('login-err').style.display='block';
+      $('login-err').textContent='Incorrect username or password';
+    }
+  }catch(e){
+    $('login-err').style.display='block';
+    $('login-err').textContent='Could not connect. Check your internet connection.';
+  }finally{
+    btn.textContent='Sign in';btn.disabled=false;
+  }
+}
+
+function logout(){
+  store.set('session',null);
+  $('main-screen').style.display='none';
+  $('login-screen').style.display='flex';
+  $('logout-btn').style.display='none';
+  $('usr').value='';$('pwd').value='';
+  $('login-err').style.display='none';
+}
+
+function showMain(){
+  $('login-screen').style.display='none';
+  $('main-screen').style.display='block';
+  $('logout-btn').style.display='block';
+  loadAll();
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+const $=id=>document.getElementById(id);
+function toast(msg){
+  const t=$('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function swTab(id,el){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  $(id).classList.add('active');el.classList.add('active');
+}
+function saveSetting(key,val){ store.set(key,val); }
+
+// ── CSV PARSE ─────────────────────────────────────────────────
+function parseCSVFull(text){
+  const records=[];let i=0,fields=[],field='',inQ=false;
+  while(i<=text.length){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'&&text[i+1]==='"'){field+='"';i+=2;}
+      else if(c==='"'){inQ=false;i++;}
+      else{field+=c;i++;}
+    }else{
+      if(c==='"'){inQ=true;i++;}
+      else if(c===','){fields.push(field.trim());field='';i++;}
+      else if(c==='\n'||c==='\r'||i===text.length){
+        fields.push(field.trim());field='';
+        if(fields.some(f=>f!==''))records.push(fields);
+        fields=[];
+        if(c==='\r'&&text[i+1]==='\n')i++;
+        i++;
+      }else{field+=c;i++;}
+    }
+  }
+  return records;
+}
+
+function parseDate(val){
+  if(!val||!val.trim())return null;
+  const mdy=/^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(val.trim());
+  if(mdy)return new Date(parseInt(mdy[3]),parseInt(mdy[1])-1,parseInt(mdy[2]));
+  const d=new Date(val);return isNaN(d)?null:d;
+}
+function formatDate(d){if(!d)return'—';return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+const bLbl=s=>s>=90?'Green':s>=60?'Amber':'Red';
+const bCls=s=>s>=90?'green':s>=60?'amber':'red';
+
+let sheetData=[];
+
+async function fetchSheet(){
+  try{
+    const url=store.get('csvUrl')||SHEET_CSV;
+    const r=await fetch(url+'&t='+Date.now());
+    const text=await r.text();
+    const records=parseCSVFull(text);
+    if(records.length<2)return[];
+    const COL={ts:0,date:1,wc:2,acc:3,rnc:4,fp:5,rework:6,scrap:7,ws:8,tape:9,staff:10,goalTxt:11,goalAch:12,bn:13};
+    const rows=[];
+    for(let i=1;i<records.length;i++){
+      const v=records[i];
+      if(!v||v.length<3)continue;
+      const get=idx=>(v[idx]||'').replace(/^"|"$/g,'').trim();
+      const wc=get(COL.wc);if(!wc)continue;
+      const yn=idx=>get(idx).toLowerCase()==='yes';
+      const no=idx=>get(idx).toLowerCase()==='no';
+      const safety=(yn(COL.acc)?10:0)+(yn(COL.rnc)?10:0);
+      const scrpVal=get(COL.scrap).toLowerCase();
+      const scrpPts=(scrpVal===''||scrpVal.includes('n/a')||scrpVal==='no')?10:scrpVal.includes('1 machine')?5:0;
+      const quality=(yn(COL.fp)?10:0)+(no(COL.rework)?10:0)+scrpPts;
+      const fiveS=(yn(COL.ws)?15:0)+(yn(COL.tape)?5:0);
+      const people=yn(COL.staff)?10:0;
+      const goal=yn(COL.goalAch)?20:0;
+      const total=safety+quality+fiveS+people+goal;
+      if(total===0&&!wc)continue;
+      rows.push({wc,date:parseDate(get(COL.date)||get(COL.ts)),safety,quality,fiveS,people,goal,total,bottleneck:get(COL.bn)||'None reported',goalText:get(COL.goalTxt)||''});
+    }
+    return rows;
+  }catch(e){console.error(e);return[];}
+}
+
+// ── LOAD ALL ──────────────────────────────────────────────────
+async function loadAll(){
+  sheetData=await fetchSheet();
+  buildOverviewTab();
+  buildRecipientsTable();
+  buildBnTable();
+  buildUsersTable();
+  buildAppsScript();
+  $('csv-url').value=store.get('csvUrl')||SHEET_CSV;
+}
+
+// ── OVERVIEW ──────────────────────────────────────────────────
+function buildOverviewTab(){
+  $('ov-total').textContent=sheetData.length;
+  $('ov-emails').textContent=(store.get('recipients')||[]).filter(r=>r.active).length;
+  buildEmailPreview();
+}
+
+function buildEmailPreview(){
+  const data=sheetData;
+  if(!data.length){$('email-preview').textContent='No data available.';return;}
+  const today=new Date();
+  const weekAgo=new Date(today);weekAgo.setDate(today.getDate()-7);
+  const week=data.filter(r=>r.date&&r.date>=weekAgo);
+  const avg=week.length?Math.round(week.reduce((a,r)=>a+r.total,0)/week.length):0;
+  const wcMap={};week.forEach(r=>{if(!wcMap[r.wc]||r.date>wcMap[r.wc].date)wcMap[r.wc]=r;});
+  const leads=Object.values(wcMap);
+  let preview=`SUBJECT: Weekly Success Scorecard — ${today.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}
+
+nVent Manufacturing | 2nd Shift Weekly Summary
+${'='.repeat(50)}
+
+FLOOR AVERAGE THIS WEEK: ${avg}% (${week.length} submissions)
+
+LEAD SCORES:
+${leads.sort((a,b)=>b.total-a.total).map(l=>`  ${l.wc.padEnd(25)} ${l.total}/100  [${bLbl(l.total)}]`).join('\n')}
+
+TOP BOTTLENECKS THIS WEEK:
+${week.filter(r=>r.bottleneck&&r.bottleneck!=='None reported').slice(0,5).map(r=>`  • ${r.wc}: "${r.bottleneck}"`).join('\n')||'  No bottlenecks reported'}
+
+${'='.repeat(50)}
+View full dashboard: https://RDZ2026.github.io/sqd-dashboard
+Admin panel: https://RDZ2026.github.io/sqd-dashboard/admin.html`;
+  $('email-preview').textContent=preview;
+}
+
+async function sendNow(){
+  const btn=document.querySelector('[onclick="sendNow()"]');
+  if(btn){btn.textContent='Sending...';btn.disabled=true;}
+  await callScript({action:'sendNow'});
+  toast('✅ Summary email sent to all active recipients!');
+  if(btn){btn.textContent='⌙ Send now';btn.disabled=false;}
+}
+
+// ── RECIPIENTS ────────────────────────────────────────────────
+async function addRecipient(){
+  const name=$('new-name').value.trim();
+  const email=$('new-email').value.trim();
+  const title=$('new-title').value.trim();
+  const role=$('new-role').value;
+  if(!name||!email){toast('Name and email are required');return;}
+  const list=store.get('recipients')||[];
+  if(list.find(r=>r.email===email)){toast('That email is already on the list');return;}
+
+  // Save to local storage
+  list.push({id:Date.now(),name,email,title,role,active:true,added:new Date().toLocaleDateString()});
+  store.set('recipients',list);
+
+  // Also write to Google Sheet Recipients tab
+  try{
+    await callScript({action:'addRecipient',name:name,email:email,title:title,role:role});
+  }catch(e){console.warn('Could not write to sheet:',e);}
+
+  $('new-name').value='';$('new-email').value='';$('new-title').value='';
+  buildRecipientsTable();
+  buildOverviewTab();
+  toast(name+' added — they will receive the next weekly email');
+}
+
+function toggleRecipient(id){
+  const list=store.get('recipients')||[];
+  const r=list.find(r=>r.id===id);
+  if(r)r.active=!r.active;
+  store.set('recipients',list);
+  buildRecipientsTable();
+  buildOverviewTab();
+  toast(r.active?'Recipient activated':'Recipient deactivated');
+}
+
+function removeRecipient(id){
+  if(!confirm('Remove this recipient?'))return;
+  let list=store.get('recipients')||[];
+  const r=list.find(r=>r.id===id);
+  list=list.filter(r=>r.id!==id);
+  store.set('recipients',list);
+  buildRecipientsTable();
+  buildOverviewTab();
+  toast('Removed from list');
+}
+
+function buildRecipientsTable(){
+  const list=store.get('recipients')||[];
+  let h='';
+  if(!list.length){h='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:1.5rem">No recipients yet. Add your first one above.</td></tr>';}
+  list.forEach(r=>{
+    const roleMap={viewer:'Viewer',manager:'Manager',admin:'Admin'};
+    const roleClr={viewer:'gray',manager:'blue',admin:'amber'};
+    h+=`<tr>
+      <td style="font-weight:500;color:var(--text)">${r.name}</td>
+      <td style="font-family:monospace;font-size:12px">${r.email}</td>
+      <td>${r.title||'—'}</td>
+      <td><span class="badge ${roleClr[r.role]||'gray'}">${roleMap[r.role]||r.role}</span></td>
+      <td><span class="badge ${r.active?'green':'gray'}">${r.active?'Active':'Inactive'}</span></td>
+      <td style="display:flex;gap:5px">
+        <button class="btn sm" onclick="toggleRecipient(${r.id})">${r.active?'Deactivate':'Activate'}</button>
+        <button class="btn sm danger" onclick="removeRecipient(${r.id})">Remove</button>
+      </td>
+    </tr>`;
+  });
+  $('recipients-table').innerHTML=h;
+}
+
+// ── BOTTLENECKS ───────────────────────────────────────────────
+function buildBnTable(){
+  const statuses=store.get('bnStatuses')||{};
+  const notes=store.get('bnNotes')||{};
+  const rows=sheetData.filter(r=>r.bottleneck&&r.bottleneck!=='None reported');
+  let h='';
+  if(!rows.length){h='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:1.5rem">No bottlenecks logged yet.</td></tr>';}
+  [...rows].sort((a,b)=>(b.date||0)-(a.date||0)).forEach((r,i)=>{
+    const key=`${r.wc}-${r.date?r.date.toISOString().slice(0,10):'nodate'}-${i}`;
+    const status=statuses[key]||'ongoing';
+    const note=notes[key]||'';
+    const stCls={resolved:'green',ongoing:'amber',escalated:'red'}[status]||'gray';
+    const stLbl={resolved:'Resolved',ongoing:'Still ongoing',escalated:'Escalated'}[status]||status;
+    h+=`<tr>
+      <td>${r.date?formatDate(r.date):'—'}</td>
+      <td style="font-weight:500;color:var(--text)">${r.wc}</td>
+      <td style="font-weight:500;color:${r.total>=90?'#276749':r.total>=60?'#854F0B':'#9b2c2c'}">${r.total}</td>
+      <td style="font-style:italic;max-width:260px">"${r.bottleneck}"</td>
+      <td>
+        <select class="status-sel" onchange="setStatus('${key}',this.value)" style="border-color:var(--${stCls}-border);color:var(--${stCls})">
+          <option value="ongoing" ${status==='ongoing'?'selected':''}>Still ongoing</option>
+          <option value="resolved" ${status==='resolved'?'selected':''}>Resolved</option>
+          <option value="escalated" ${status==='escalated'?'selected':''}>Escalated</option>
+        </select>
+      </td>
+      <td><input type="text" placeholder="Add note..." value="${note}" style="border:0.5px solid var(--border2);border-radius:4px;padding:3px 7px;font-size:11px;width:120px" onblur="setNote('${key}',this.value)"></td>
+    </tr>`;
+  });
+  $('bn-table').innerHTML=h;
+
+  // Recurring
+  const ongoing=rows.filter((_,i)=>{
+    const key=`${rows[i].wc}-${rows[i].date?rows[i].date.toISOString().slice(0,10):'nodate'}-${i}`;
+    return (statuses[key]||'ongoing')==='ongoing';
+  });
+  if(!ongoing.length){
+    $('recurring-list').innerHTML='<span style="color:var(--green)">No ongoing bottlenecks — great work!</span>';
+  } else {
+    $('recurring-list').innerHTML=ongoing.map(r=>`<div style="padding:8px 0;border-bottom:0.5px solid var(--border);font-size:13px"><strong>${r.wc}</strong> — <span style="color:var(--text2);font-style:italic">"${r.bottleneck}"</span></div>`).join('');
+  }
+}
+
+function setStatus(key,val){
+  const s=store.get('bnStatuses')||{};
+  s[key]=val;store.set('bnStatuses',s);
+  buildBnTable();
+  toast('Status updated');
+}
+function setNote(key,val){
+  const n=store.get('bnNotes')||{};
+  n[key]=val;store.set('bnNotes',n);
+  toast('Note saved');
+}
+
+// ── APPS SCRIPT CALLER (iframe form — bypasses CORS completely) ─
+function callScript(params){
+  return new Promise((resolve)=>{
+    // Create hidden iframe
+    const iframe=document.createElement('iframe');
+    iframe.name='script-target-'+Date.now();
+    iframe.style.display='none';
+    document.body.appendChild(iframe);
+
+    // Create form targeting the iframe
+    const form=document.createElement('form');
+    form.method='GET';
+    form.action=APPS_SCRIPT_URL;
+    form.target=iframe.name;
+    form.style.display='none';
+
+    // Add all params as hidden inputs
+    Object.entries(params).forEach(([k,v])=>{
+      const input=document.createElement('input');
+      input.type='hidden';
+      input.name=k;
+      input.value=v;
+      form.appendChild(input);
+    });
+
+    document.body.appendChild(form);
+    form.submit();
+
+    // Clean up after 5 seconds and resolve
+    setTimeout(()=>{
+      try{document.body.removeChild(form);}catch(e){}
+      try{document.body.removeChild(iframe);}catch(e){}
+      resolve(true);
+    },5000);
+  });
+}
+
+// ── ADMIN USERS ───────────────────────────────────────────────
+async function addUser(){
+  const usr=$('new-usr').value.trim();
+  const pwd=$('new-upwd').value;
+  const name=$('new-uname').value.trim();
+  if(!usr||!pwd||!name){toast('All fields required');return;}
+  const btn=document.querySelector('[onclick="addUser()"]');
+  if(btn){btn.textContent='Adding...';btn.disabled=true;}
+  toast('Adding '+name+'...');
+  await callScript({action:'addAdmin',username:usr,password:pwd,name:name});
+  $('new-usr').value='';$('new-upwd').value='';$('new-uname').value='';
+  toast(name+' added! Refreshing list...');
+  if(btn){btn.textContent='Add user';btn.disabled=false;}
+  // Wait for Google Sheet to update then refresh
+  setTimeout(()=>buildUsersTable(),6000);
+}
+
+async function removeUser(usr){
+  const session=store.get('session');
+  if(session&&session.username===usr){toast("You can't remove yourself");return;}
+  if(!confirm('Remove admin user "'+usr+'"?'))return;
+  let list=store.get('admins')||[];
+  list=list.filter(a=>a.username!==usr);
+  store.set('admins',list);
+  callScript({action:'removeAdmin',username:usr});
+  buildUsersTable();
+  toast('Admin user removed');
+}
+
+async function buildUsersTable(){
+  const session=store.get('session');
+  $('users-table').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:1rem">Loading...</td></tr>';
+  try{
+    // Always read from Google Sheet as source of truth
+    const resp=await fetch(ADMINS_CSV+'&t='+Date.now());
+    const text=await resp.text();
+    const lines=text.trim().split('\n').slice(1);
+    const sheetAdmins=[];
+    lines.forEach(line=>{
+      if(!line.trim())return;
+      const parts=line.split(',').map(v=>v.replace(/^"|"$/g,'').trim());
+      const [uname,pwd,name,active]=parts;
+      if(!uname)return;
+      const isActive=active==='TRUE'||active==='True'||active==='true'||active==='Yes';
+      if(isActive) sheetAdmins.push({username:uname,password:pwd,name:name||uname,active:true});
+    });
+    // Sync sheet data to localStorage so login works offline
+    store.set('admins',sheetAdmins);
+    // Render table
+    let h='';
+    if(!sheetAdmins.length){
+      h='<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:1rem">No admin users found in Google Sheet</td></tr>';
+    }
+    sheetAdmins.forEach(a=>{
+      const isMe=session&&session.username===a.username;
+      h+=`<tr>
+        <td style="font-family:monospace;font-weight:500">${a.username}${isMe?' <span style="font-size:10px;color:var(--text3)">(you)</span>':''}</td>
+        <td>${a.name}</td>
+        <td><span class="badge green">Active</span></td>
+        <td>${isMe?'—':`<button class="btn sm danger" onclick="removeUser('${a.username}')">Remove</button>`}</td>
+      </tr>`;
+    });
+    $('users-table').innerHTML=h;
+  }catch(e){
+    // Fall back to localStorage if sheet unavailable
+    const localAdmins=store.get('admins')||[];
+    let h='';
+    localAdmins.forEach(a=>{
+      const isMe=session&&session.username===a.username;
+      h+=`<tr>
+        <td style="font-family:monospace;font-weight:500">${a.username}${isMe?' <span style="font-size:10px;color:var(--text3)">(you)</span>':''}</td>
+        <td>${a.name}</td>
+        <td><span class="badge green">Active</span></td>
+        <td>${isMe?'—':`<button class="btn sm danger" onclick="removeUser('${a.username}')">Remove</button>`}</td>
+      </tr>`;
+    });
+    $('users-table').innerHTML=h||'<tr><td colspan="4" style="text-align:center;color:var(--red);padding:1rem">Could not load from sheet — showing cached data</td></tr>';
+  }
+}
+
+async function changePwd(){
+  const cur=$('cur-pwd').value;
+  const nw=$('new-pwd').value;
+  const conf=$('conf-pwd').value;
+  const session=store.get('session');
+  if(nw!==conf){toast('New passwords do not match');return;}
+  if(nw.length<6){toast('Password must be at least 6 characters');return;}
+  await callScript({action:'changePassword',username:session.username,currentPwd:cur,newPwd:nw});
+  $('cur-pwd').value='';$('new-pwd').value='';$('conf-pwd').value='';
+  toast('Password update sent — takes effect in ~30 seconds');
+}
+
+// ── APPS SCRIPT ───────────────────────────────────────────────
+function buildAppsScript(){
+  const script=`// ── Paste into Extensions > Apps Script ──────────────────────
+// Deploy > New deployment > Web app > Execute as Me > Anyone > Deploy
+
+const SHEET_ID = '1zbMCM0j9QjpDpz3x-3s49sJ4x2w09Bzuzq1XaylUqyw';
+const DASHBOARD_URL = 'https://RDZ2026.github.io/-sqd-dashboard';
+const ADMIN_URL = 'https://RDZ2026.github.io/-sqd-dashboard/admin.html';
+
+function getRecipients() {
+  const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Recipients');
+  if (!sheet) return [];
+  const data = sheet.getDataRange().getValues();
+  const out = [];
+  for (let i = 1; i < data.length; i++) {
+    const [name, email, title, role, active] = data[i];
+    if (email && (active === true || active === 'TRUE' || active === 'Yes'))
+      out.push({ name, email, title, role });
+  }
+  return out;
+}
+
+function sendWeeklySummary() {
+  const recipients = getRecipients();
+  if (!recipients.length) { Logger.log('No recipients in Recipients sheet'); return; }
+  const data = SpreadsheetApp.openById(SHEET_ID).getSheetByName('Form Responses 1').getDataRange().getValues();
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 7);
+  let total = 0, count = 0;
+  const leads = {}, bns = [], cats = {s:0,q:0,f:0,p:0,g:0};
+  for (let i = 1; i < data.length; i++) {
+    const r = data[i];
+    if (!r[2] || new Date(r[1]) < cutoff) continue;
+    const sc=(r[7]||'').toLowerCase();
+    const sp=sc===''||sc.includes('n/a')||sc==='no'?10:sc.includes('1 machine')?5:0;
+    const s=(r[3]==='Yes'?10:0)+(r[4]==='Yes'?10:0);
+    const q=(r[5]==='Yes'?10:0)+(r[6]==='No'?10:0)+sp;
+    const f=(r[8]==='Yes'?15:0)+(r[9]==='Yes'?5:0);
+    const p=r[10]==='Yes'?10:0;
+    const g=r[12]==='Yes'?20:0;
+    const t=s+q+f+p+g;
+    total+=t; count++;
+    cats.s+=s; cats.q+=q; cats.f+=f; cats.p+=p; cats.g+=g;
+    if(!leads[r[2]]||new Date(r[1])>leads[r[2]].date) leads[r[2]]={total:t,date:new Date(r[1])};
+    if(r[13]&&r[13]!=='None reported') bns.push({wc:r[2],text:r[13]});
+  }
+  const avg=count?Math.round(total/count):0;
+  const pct=(v,m)=>count?Math.round(v/count/m*100):0;
+  const lbl=s=>s>=90?'Green':s>=60?'Amber':'Red';
+  const today=new Date().toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  let body='nVent Manufacturing | 2nd Shift Weekly Summary\\n'+today+'\\n'+'='.repeat(50)+'\\n\\n';
+  body+='FLOOR AVERAGE: '+avg+'% ('+count+' submissions)\\n\\n';
+  body+='LEAD SCORES:\\n';
+  Object.entries(leads).sort((a,b)=>b[1].total-a[1].total).forEach(([wc,d])=>{
+    body+='  '+wc.padEnd(28)+d.total+'/100  ['+lbl(d.total)+']\\n';
+  });
+  body+='\\nCATEGORY AVERAGES:\\n';
+  body+='  Safety      '+pct(cats.s,20)+'%\\n';
+  body+='  Quality     '+pct(cats.q,30)+'%\\n';
+  body+='  5S          '+pct(cats.f,20)+'%\\n';
+  body+='  People      '+pct(cats.p,10)+'%\\n';
+  body+='  Daily Goal  '+pct(cats.g,20)+'%\\n';
+  if(bns.length){body+='\\nBOTTLENECKS:\\n';bns.slice(0,8).forEach(b=>{body+='  * '+b.wc+': "'+b.text+'"\\n';});}
+  else body+='\\nNo bottlenecks reported this week!\\n';
+  body+='\\n'+'='.repeat(50)+'\\nDashboard: '+DASHBOARD_URL+'\\nAdmin: '+ADMIN_URL+'\\n';
+  const subj='Weekly Scorecard - '+today;
+  recipients.forEach(r=>GmailApp.sendEmail(r.email,subj,body));
+  Logger.log('Sent to '+recipients.length+' recipients');
+}
+
+function doGet(e) {
+  const a=e.parameter.action;
+  if(a==='sendNow'){sendWeeklySummary();return ok('Email sent');}
+  if(a==='addRecipient'){
+    SpreadsheetApp.openById(SHEET_ID).getSheetByName('Recipients')
+      .appendRow([e.parameter.name,e.parameter.email,e.parameter.title,e.parameter.role,true]);
+    return ok('Added');
+  }
+  if(a==='getRecipients'){
+    return ContentService.createTextOutput(JSON.stringify(getRecipients())).setMimeType(ContentService.MimeType.JSON);
+  }
+  if(a==='addAdmin'){
+    const sheet=SpreadsheetApp.openById(SHEET_ID).getSheetByName('Admins');
+    const data=sheet.getDataRange().getValues();
+    if(data.some((r,i)=>i>0&&r[0]===e.parameter.username)) return ok('Username already exists');
+    sheet.appendRow([e.parameter.username,e.parameter.password,e.parameter.name,true]);
+    return ok('Admin added');
+  }
+  if(a==='removeAdmin'){
+    const sheet=SpreadsheetApp.openById(SHEET_ID).getSheetByName('Admins');
+    const data=sheet.getDataRange().getValues();
+    for(let i=1;i<data.length;i++){
+      if(data[i][0]===e.parameter.username){sheet.deleteRow(i+1);return ok('Removed');}
+    }
+    return ok('User not found');
+  }
+  if(a==='changePassword'){
+    const sheet=SpreadsheetApp.openById(SHEET_ID).getSheetByName('Admins');
+    const data=sheet.getDataRange().getValues();
+    for(let i=1;i<data.length;i++){
+      if(data[i][0]===e.parameter.username){
+        if(data[i][1]!==e.parameter.currentPwd) return ContentService.createTextOutput(JSON.stringify({success:false,message:'Current password incorrect'})).setMimeType(ContentService.MimeType.JSON);
+        sheet.getRange(i+1,2).setValue(e.parameter.newPwd);
+        return ok('Password updated');
+      }
+    }
+    return ok('User not found');
+  }
+  if(a==='updateLastLogin'){
+    // Optional — just log it
+    Logger.log('Login: '+e.parameter.username+' at '+new Date());
+    return ok('Logged');
+  }
+  return ok('Ready');
+}
+
+function ok(msg){
+  return ContentService.createTextOutput(JSON.stringify({success:true,message:msg})).setMimeType(ContentService.MimeType.JSON);
+}`;
+  $('apps-script-code').textContent=script;
+}
+
+function copyScript(){
+  const text=$('apps-script-code').textContent;
+  navigator.clipboard.writeText(text).then(()=>toast('Script copied to clipboard'));
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+initDefaults();
+startSessionTimer();
+const session=store.get('session');
+if(session&&(Date.now()-session.time)<3600000){
+  showMain();
+} else {
+  store.set('session',null);
+  $('login-screen').style.display='flex';
+}
+</script>
+</body>
+</html>
