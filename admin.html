@@ -524,7 +524,7 @@ async function addRecipient(){
   }catch(e){}
   $('new-name').value='';$('new-email').value='';$('new-title').value='';
   toast(name+' added to distribution list!');
-  setTimeout(()=>{buildRecipientsTable();buildOverviewTab();},5000);
+  setTimeout(()=>{buildRecipientsTable();buildOverviewTab();},6000);
 }
 
 async function removeRecipientByEmail(email){
@@ -533,7 +533,7 @@ async function removeRecipientByEmail(email){
     await callScript({action:'removeRecipient',email});
   }catch(e){}
   toast('Recipient removed');
-  setTimeout(()=>{buildRecipientsTable();buildOverviewTab();},5000);
+  setTimeout(()=>{buildRecipientsTable();buildOverviewTab();},6000);
 }
 
 function toggleRecipient(id){
@@ -682,7 +682,7 @@ async function addUser(){
   $('new-usr').value='';$('new-upwd').value='';$('new-uname').value='';
   if(btn){btn.textContent='Add user';btn.disabled=false;}
   toast(name+' added successfully!');
-  setTimeout(()=>buildUsersTable(),5000);
+  setTimeout(()=>buildUsersTable(),6000);
 }
 
 async function removeUser(usr){
@@ -695,7 +695,7 @@ async function removeUser(usr){
     // Delete likely still worked even if response failed
   }
   toast('Admin user removed');
-  setTimeout(()=>buildUsersTable(),5000);
+  setTimeout(()=>buildUsersTable(),6000);
 }
 
 async function buildUsersTable(){
